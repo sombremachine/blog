@@ -1,37 +1,53 @@
 package com.testtask.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.hibernate.Hibernate;
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.data.domain.Persistable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 
 @Entity
 @Access(AccessType.FIELD)
-@Table(name="posts")
-public class PostEntity  implements Persistable<Integer> {
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+@Table(name = "posts")
+public class BlogEntity implements Persistable<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotBlank
     @Size(min = 2, max = 100)
     @Column(name = "title", nullable = false)
     private String title;
 
-    @NotBlank
-    @Size(min = 2, max = 100)
+    @Size(min = 2, max = 140)
     @Column(name = "content", nullable = false)
     private String content;
 
-    public PostEntity() {
+    public BlogEntity() {
     }
 
-    public PostEntity(Integer id) {
+    public BlogEntity(Integer id) {
+        this(id, null, null);
+    }
+
+    public BlogEntity(String title, String content) {
+        this(null, title, content);
+    }
+
+    public BlogEntity(Integer id, String title, String content) {
         this.id = id;
+        this.title = title;
+        this.content = content;
+    }
+
+    public BlogEntity(BlogEntity orginal) {
+        this(orginal.id, orginal.title, orginal.content);
     }
 
     public String getTitle() {
@@ -72,7 +88,7 @@ public class PostEntity  implements Persistable<Integer> {
         if (o == null || !getClass().equals(Hibernate.getClass(o))) {
             return false;
         }
-        PostEntity that = (PostEntity) o;
+        BlogEntity that = (BlogEntity) o;
         return id != null && id.equals(that.id);
     }
 
@@ -83,7 +99,7 @@ public class PostEntity  implements Persistable<Integer> {
 
     @Override
     public String toString() {
-        return "PostEntity{" +
+        return "BlogEntity{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
