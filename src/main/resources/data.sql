@@ -1,6 +1,6 @@
 DELETE FROM posts;
 
-ALTER TABLE posts ALTER COLUMN id RESTART WITH 1;
+alter sequence blog_seq restart with 1;
 
 INSERT INTO posts (title, content) VALUES
 ('topic_1', 'thdrthdbth'),

@@ -9,8 +9,12 @@ import java.util.List;
 
 @Service
 public class BlogServiceImpl implements BlogService {
+    private BlogEntryRepository repository;
+
     @Autowired
-    BlogEntryRepository repository;
+    public BlogServiceImpl(BlogEntryRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public BlogEntity create(BlogEntity blogEntity) {

@@ -6,6 +6,7 @@ import com.testtask.model.BlogEntity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {Launcher.class})
+@ContextConfiguration(classes = {Launcher.class}, initializers = ConfigFileApplicationContextInitializer.class)
 @WebAppConfiguration
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:data.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class BlogRestControllerTest {
@@ -81,7 +82,7 @@ public class BlogRestControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> assertThat(jsonReadList(getJsonFromResult(result))).isEqualTo(expected));
+                .andExpect(result -> assertThat(jsonReadList(getJsonFromResult(result))).usingFieldByFieldElementComparator().isEqualTo(expected));
     }
 
     private void testGet(String url, BlogEntity expected) throws Exception {
@@ -89,7 +90,7 @@ public class BlogRestControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> assertThat(jsonRead(getJsonFromResult(result))).isEqualTo(expected));
+                .andExpect(result -> assertThat(jsonRead(getJsonFromResult(result))).isEqualToComparingFieldByField(expected));
     }
 
     @Test
@@ -121,7 +122,7 @@ public class BlogRestControllerTest {
 
         BlogEntity returned = jsonRead(getJsonFromResult(action));
         expected.setId(returned.getId());
-        assertThat(returned).isEqualTo(expected);
+        assertThat(returned).isEqualToComparingFieldByField(expected);
     }
 
     @Test
@@ -132,6 +133,6 @@ public class BlogRestControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(MAPPER.writeValueAsString(updated)))
                 .andExpect(status().isNoContent());
-        testGet(REST_URL + "2", updated);
+        testGet(REST_URL + TOPIC2_ID, updated);
     }
 }

@@ -12,13 +12,13 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 
 @Entity
-@Access(AccessType.FIELD)
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
 @Table(name = "posts")
-public class BlogEntity implements Persistable<Integer> {
+public class BlogEntity{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name="seq",sequenceName="blog_seq", allocationSize = 1)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="seq")
     private Integer id;
 
     @Size(min = 2, max = 100)
@@ -66,7 +66,6 @@ public class BlogEntity implements Persistable<Integer> {
         this.content = content;
     }
 
-    @Override
     public Integer getId() {
         return id;
     }
@@ -75,27 +74,26 @@ public class BlogEntity implements Persistable<Integer> {
         this.id = id;
     }
 
-    @Override
     public boolean isNew() {
         return this.id == null;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || !getClass().equals(Hibernate.getClass(o))) {
-            return false;
-        }
-        BlogEntity that = (BlogEntity) o;
-        return id != null && id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id == null ? 0 : id;
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) {
+//            return true;
+//        }
+//        if (o == null || !getClass().equals(Hibernate.getClass(o))) {
+//            return false;
+//        }
+//        BlogEntity that = (BlogEntity) o;
+//        return id != null && id.equals(that.id);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return id == null ? 0 : id;
+//    }
 
     @Override
     public String toString() {
