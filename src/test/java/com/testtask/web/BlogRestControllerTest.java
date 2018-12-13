@@ -3,6 +3,8 @@ package com.testtask.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testtask.Launcher;
 import com.testtask.model.BlogEntity;
+import com.testtask.to.BlogTo;
+import com.testtask.util.BlogUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,9 @@ public class BlogRestControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private BlogUtil util;
+
     @PostConstruct
     private void postConstruct() {
         mockMvc = MockMvcBuilders
@@ -73,8 +78,16 @@ public class BlogRestControllerTest {
         return MAPPER.readValue(json, BlogEntity.class);
     }
 
+    private BlogTo jsonReadTo(String json) throws IOException {
+        return MAPPER.readValue(json, BlogTo.class);
+    }
+
     private List<BlogEntity> jsonReadList(String json) throws IOException {
         return MAPPER.readerFor(BlogEntity.class).<BlogEntity>readValues(json).readAll();
+    }
+
+    private List<BlogTo> jsonReadToList(String json) throws IOException {
+        return MAPPER.readerFor(BlogTo.class).<BlogTo>readValues(json).readAll();
     }
 
     private void testGetAll(List<BlogEntity> expected) throws Exception {
@@ -82,7 +95,7 @@ public class BlogRestControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> assertThat(jsonReadList(getJsonFromResult(result))).usingFieldByFieldElementComparator().isEqualTo(expected));
+                .andExpect(result -> assertThat(jsonReadToList(getJsonFromResult(result))).usingFieldByFieldElementComparator().isEqualTo(util.asTo(expected)));
     }
 
     private void testGet(String url, BlogEntity expected) throws Exception {
@@ -90,7 +103,7 @@ public class BlogRestControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> assertThat(jsonRead(getJsonFromResult(result))).isEqualToComparingFieldByField(expected));
+                .andExpect(result -> assertThat(jsonReadTo(getJsonFromResult(result))).isEqualToComparingFieldByField(util.asTo(expected)));
     }
 
     @Test
@@ -120,9 +133,9 @@ public class BlogRestControllerTest {
                 .andExpect(status().isCreated())
                 .andDo(print());
 
-        BlogEntity returned = jsonRead(getJsonFromResult(action));
+        BlogTo returned = jsonReadTo(getJsonFromResult(action));
         expected.setId(returned.getId());
-        assertThat(returned).isEqualToComparingFieldByField(expected);
+        assertThat(returned).isEqualToComparingFieldByField(util.asTo(expected));
     }
 
     @Test

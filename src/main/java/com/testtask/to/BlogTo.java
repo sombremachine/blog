@@ -1,42 +1,31 @@
-package com.testtask.model;
+package com.testtask.to;
 
-import javax.persistence.*;
-import javax.validation.constraints.Size;
+public class BlogTo {
 
-@Entity
-@Table(name = "posts")
-public class BlogEntity{
-    @Id
-    @SequenceGenerator(name="seq",sequenceName="blog_seq", allocationSize = 1)
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="seq")
     private Integer id;
 
-    @Size(min = 2, max = 100)
-    @Column(name = "title", nullable = false)
     private String title;
 
-    @Size(min = 2, max = 140)
-    @Column(name = "content", nullable = false)
     private String content;
 
-    public BlogEntity() {
+    public BlogTo() {
     }
 
-    public BlogEntity(Integer id) {
+    public BlogTo(Integer id) {
         this(id, null, null);
     }
 
-    public BlogEntity(String title, String content) {
+    public BlogTo(String title, String content) {
         this(null, title, content);
     }
 
-    public BlogEntity(Integer id, String title, String content) {
+    public BlogTo(Integer id, String title, String content) {
         this.id = id;
         this.title = title;
         this.content = content;
     }
 
-    public BlogEntity(BlogEntity orginal) {
+    public BlogTo(BlogTo orginal) {
         this(orginal.id, orginal.title, orginal.content);
     }
 
@@ -64,13 +53,9 @@ public class BlogEntity{
         this.id = id;
     }
 
-    public boolean isNew() {
-        return this.id == null;
-    }
-
     @Override
     public String toString() {
-        return "BlogEntity{" +
+        return "BlogTo{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +

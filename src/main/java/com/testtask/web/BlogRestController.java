@@ -3,6 +3,8 @@ package com.testtask.web;
 
 import com.testtask.model.BlogEntity;
 import com.testtask.service.BlogService;
+import com.testtask.to.BlogTo;
+import com.testtask.util.BlogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,43 +16,44 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = BlogRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = BlogRestController.REST_URL)
 public class BlogRestController {
     static final String REST_URL = "/post";
 
-    @Autowired
     private BlogService service;
+    private BlogUtil util;
+
+    @Autowired
+    public BlogRestController(BlogService service, BlogUtil util) {
+        this.service = service;
+        this.util = util;
+    }
 
     @GetMapping("/{id}")
-    public BlogEntity get(@PathVariable("id") int id) {
-        return service.findById(id);
+    public BlogTo get(@PathVariable("id") int id) {
+        return util.asTo(service.findById(id));
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable("id") int id) {
         service.deleteById(id);
     }
 
     @GetMapping
-    public List<BlogEntity> getAll() {
-        return service.getAll();
+    public List<BlogTo> getAll() {
+        return util.asTo(service.getAll());
     }
 
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @PutMapping(value = "/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@RequestBody BlogEntity blogEntity, @PathVariable("id") int id) {
         service.update(blogEntity, id);
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BlogEntity> create(@RequestBody BlogEntity blogEntity) {
-        //{TODO: check new}
-        BlogEntity created = service.create(blogEntity);
-        URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path(REST_URL + "/{id}")
-                .buildAndExpand(created.getId()).toUri();
-
-        return ResponseEntity.created(uriOfNewResource).body(created);
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public BlogTo create(@RequestBody BlogEntity blogEntity) {
+        return util.asTo(service.create(blogEntity));
     }
 }

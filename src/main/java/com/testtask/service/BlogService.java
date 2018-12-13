@@ -1,7 +1,6 @@
 package com.testtask.service;
 
 import com.testtask.model.BlogEntity;
-
 import java.util.List;
 
 public interface BlogService {
