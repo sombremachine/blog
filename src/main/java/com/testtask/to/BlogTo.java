@@ -1,5 +1,7 @@
 package com.testtask.to;
 
+import com.google.common.base.MoreObjects;
+
 public class BlogTo {
 
     private Integer id;
@@ -55,10 +57,10 @@ public class BlogTo {
 
     @Override
     public String toString() {
-        return "BlogTo{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                '}';
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("title", title)
+                .add("content", content)
+                .toString();
     }
 }
