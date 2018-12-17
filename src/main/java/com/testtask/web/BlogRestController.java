@@ -29,12 +29,12 @@ public class BlogRestController {
         this.util = util;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("{id}")
     public BlogTo get(@PathVariable("id") int id) {
         return util.asTo(service.findById(id));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable("id") int id) {
         service.deleteById(id);
@@ -45,7 +45,7 @@ public class BlogRestController {
         return util.asTo(service.getAll());
     }
 
-    @PutMapping(value = "/{id}")
+    @PutMapping(value = "{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@RequestBody BlogEntity blogEntity, @PathVariable("id") int id) {
         service.update(blogEntity, id);

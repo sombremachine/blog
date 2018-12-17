@@ -1,5 +1,7 @@
 package com.testtask.model;
 
+import com.google.common.base.MoreObjects;
+
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 
@@ -70,10 +72,10 @@ public class BlogEntity{
 
     @Override
     public String toString() {
-        return "BlogEntity{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                '}';
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("title", title)
+                .add("content", content)
+                .toString();
     }
 }
