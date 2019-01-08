@@ -1,151 +1,122 @@
 package com.testtask.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testtask.Launcher;
-import com.testtask.model.BlogEntity;
-import com.testtask.to.BlogTo;
-import com.testtask.util.BlogUtil;
+import com.testtask.containers.PostgresContainerRunner;
+import com.testtask.containers.TestApplicationInitializer;
+import com.testtask.service.request.BlogCreateRequest;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.List;
 
-import static com.testtask.TestUtils.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static io.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {Launcher.class}, initializers = ConfigFileApplicationContextInitializer.class)
-@WebAppConfiguration
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:data.sql", config = @SqlConfig(encoding = "UTF-8"))
+@ContextConfiguration(classes = {Launcher.class}, initializers = TestApplicationInitializer.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional
 public class BlogRestControllerTest {
     private static final String REST_URL = BlogRestController.REST_URL + '/';
 
-    private static final CharacterEncodingFilter CHARACTER_ENCODING_FILTER = new CharacterEncodingFilter();
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
     static {
-        CHARACTER_ENCODING_FILTER.setEncoding("UTF-8");
-        CHARACTER_ENCODING_FILTER.setForceEncoding(true);
+        PostgresContainerRunner.run();
     }
 
-    private MockMvc mockMvc;
+    @LocalServerPort
+    int serverPort;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @Autowired
-    private BlogUtil util;
-
-    @PostConstruct
-    private void postConstruct() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(webApplicationContext)
-                .addFilter(CHARACTER_ENCODING_FILTER)
-                .build();
-    }
-
-    private String getJsonFromResult(ResultActions action) throws UnsupportedEncodingException {
-        return action.andReturn().getResponse().getContentAsString();
-    }
-
-    private String getJsonFromResult(MvcResult result) throws UnsupportedEncodingException {
-        return result.getResponse().getContentAsString();
-    }
-
-    private BlogEntity jsonRead(String json) throws IOException {
-        return MAPPER.readValue(json, BlogEntity.class);
-    }
-
-    private BlogTo jsonReadTo(String json) throws IOException {
-        return MAPPER.readValue(json, BlogTo.class);
-    }
-
-    private List<BlogEntity> jsonReadList(String json) throws IOException {
-        return MAPPER.readerFor(BlogEntity.class).<BlogEntity>readValues(json).readAll();
-    }
-
-    private List<BlogTo> jsonReadToList(String json) throws IOException {
-        return MAPPER.readerFor(BlogTo.class).<BlogTo>readValues(json).readAll();
-    }
-
-    private void testGetAll(List<BlogEntity> expected) throws Exception {
-        mockMvc.perform(get(REST_URL))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> assertThat(jsonReadToList(getJsonFromResult(result))).usingFieldByFieldElementComparator().isEqualTo(util.asTo(expected)));
-    }
-
-    private void testGet(String url, BlogEntity expected) throws Exception {
-        mockMvc.perform(get(url))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> assertThat(jsonReadTo(getJsonFromResult(result))).isEqualToComparingFieldByField(util.asTo(expected)));
+    @Before
+    public void initRestAssured() {
+        RestAssured.port = serverPort;
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
     @Test
-    public void testGet() throws Exception {
-        testGet(REST_URL + TOPIC2_ID, TOPIC2);
+    public void createMustWork() {
+        BlogCreateRequest request = new BlogCreateRequest();
+        request.setTitle("test_title");
+        request.setContent("test_content");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+        .when()
+                .post(REST_URL)
+        .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("size()", is(3),
+                        "id", is(not(empty())),
+                        "title", is("test_title"),
+                        "content", is("test_content")
+                );
+
     }
 
     @Test
-    public void testDelete() throws Exception {
-        mockMvc.perform(delete(REST_URL + TOPIC2_ID))
-                .andExpect(status().isNoContent())
-                .andDo(print());
-        testGetAll(Arrays.asList(TOPIC1, TOPIC3));
+    public void getAllMustWork() {
+        when()
+                .get(REST_URL)
+        .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("size()", is(2),
+                        "id", is(not(empty())),
+                        "title", hasItems("title_post_1000", "title_post_1001"),
+                        "content", hasItems("content_post_1000", "content_post_1001")
+                );
     }
 
     @Test
-    public void testgetAll() throws Exception {
-        testGetAll(TOPICS);
+    public void getMustWork() {
+        when()
+                .get(REST_URL + "{id}", 1000)
+        .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("id", is(1000),
+                        "title", is("title_post_1000"),
+                        "content", is("content_post_1000")
+                );
     }
 
     @Test
-    public void testCreate() throws Exception {
-        BlogEntity expected = new BlogEntity(null, "New", "some content");
-        ResultActions action = mockMvc.perform(post(REST_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(MAPPER.writeValueAsString(expected)))
-                .andExpect(status().isCreated())
-                .andDo(print());
+    public void updateMustWork() {
+        List<Integer> ids = get(REST_URL).path("id");
 
-        BlogTo returned = jsonReadTo(getJsonFromResult(action));
-        expected.setId(returned.getId());
-        assertThat(returned).isEqualToComparingFieldByField(util.asTo(expected));
+        BlogCreateRequest request = new BlogCreateRequest();
+        request.setTitle("test_title_updated");
+        request.setContent("test_content_updated");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+        .when()
+                .put(REST_URL + "{id}", ids.get(0))
+        .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(
+                        "id", is(ids.get(0)),
+                        "title", is("test_title_updated"),
+                        "content", is("test_content_updated")
+                );
+        when()
+                .get(REST_URL + "{id}", ids.get(0))
+        .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(
+                        "id", is(ids.get(0)),
+                        "title", is("test_title_updated"),
+                        "content", is("test_content_updated")
+                );
     }
 
-    @Test
-    public void testUpdtae() throws Exception {
-        BlogEntity updated = new BlogEntity(TOPIC2);
-        updated.setTitle("Updated");
-        mockMvc.perform(put(REST_URL + TOPIC2_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(MAPPER.writeValueAsString(updated)))
-                .andExpect(status().isNoContent());
-        testGet(REST_URL + TOPIC2_ID, updated);
-    }
+
 }

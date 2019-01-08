@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: me
+      changes:
+        - createSequence:
+            catalogName: seq
+            cycle: false
+            incrementBy: 1
+            schemaName: public
+            sequenceName: seq_id
+            startValue: 1000
+        - createTable:
+            tableName: posts
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  defaultValueSequenceNext: seq_id
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: varchar(255)
+                  constraints:
+                    nullable: false

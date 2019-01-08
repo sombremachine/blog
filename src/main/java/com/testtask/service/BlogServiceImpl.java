@@ -2,43 +2,55 @@ package com.testtask.service;
 
 import com.testtask.model.BlogEntity;
 import com.testtask.repository.BlogEntryRepository;
+import com.testtask.service.request.BlogCreateRequest;
+import com.testtask.service.response.BlogTo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class BlogServiceImpl implements BlogService {
-    private BlogEntryRepository repository;
+
+    private final BlogEntryRepository repository;
+    private final BlogMapper mapper;
 
     @Autowired
-    public BlogServiceImpl(BlogEntryRepository repository) {
+    public BlogServiceImpl(BlogEntryRepository repository, BlogMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
+    @Transactional
     @Override
-    public BlogEntity create(BlogEntity blogEntity) {
-        return repository.save(blogEntity);
+    public BlogTo create(BlogCreateRequest blogCreateRequest) {
+        return mapper.toBlogTo(repository.save(mapper.toBlogEntity(blogCreateRequest)));
     }
 
+    @Transactional
     @Override
-    public void update(BlogEntity blogEntity, int id) {
-        blogEntity.setId(id);
-        repository.save(blogEntity);
+    public BlogTo update(BlogCreateRequest blogCreateRequest, int id) {
+        BlogEntity blogEntity = repository.getOne(id);
+        mapper.toBlogEntity(blogEntity, blogCreateRequest);
+        return mapper.toBlogTo(repository.save(blogEntity));
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public BlogEntity findById(int id) {
-        return repository.findById(id).orElse(null);
+    public BlogTo get(int id) {
+        return mapper.toBlogTo(repository.getOne(id));
     }
 
+    @Transactional
     @Override
-    public void deleteById(int id) {
+    public void delete(int id) {
         repository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<BlogEntity> getAll() {
-        return repository.findAll();
+    public List<BlogTo> getAll() {
+        return mapper.toBlogTo(repository.findAll());
     }
 }

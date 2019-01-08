@@ -9,8 +9,8 @@ import javax.validation.constraints.Size;
 @Table(name = "posts")
 public class BlogEntity{
     @Id
-    @SequenceGenerator(name="seq",sequenceName="blog_seq", allocationSize = 1)
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="seq")
+    @SequenceGenerator(name="seq",sequenceName="seq_id", allocationSize = 1, initialValue = 1000)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="seq_id")
     private Integer id;
 
     @Size(min = 2, max = 100)

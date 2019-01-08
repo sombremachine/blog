@@ -1,0 +1,12 @@
+spring:
+  jpa:
+      open-in-view: false
+      hibernate:
+        ddl-auto: validate
+        use-new-id-generator-mappings: true
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/blog_database
+    username: blog
+    password: blogpass
