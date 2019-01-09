@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: blog_database
+      POSTGRES_USER: blog
+      POSTGRES_PASSWORD: blogpass
+    ports:
+      - "5432:5432"
